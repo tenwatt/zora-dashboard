@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zora's Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13/dist/cdn.min.js"></script>
+<style>
+[x-cloak]{display:none !important}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f6;--card:#ffffff;--accent:#4a2028;--accent-light:#6b3a44;
+  --text:#1a1a1a;--text-muted:#6b6b6b;--border:#e8e4df;
+  --green:#2d6a4f;--green-light:#d4edda;--gold:#b8860b;--gold-light:#fff3cd;
+  --red:#c0392b;--red-light:#f8d7da;
+  --track-mt:#4a2028;--track-writing:#1d4e89;--track-art:#c45d28;
+  --track-psych:#6a3d9a;--track-pipeline:#880e4f;--track-academic:#1a7a6d;
+  --track-essays:#555;--track-ext:#2d6a4f;--track-planning:#475569;
+  --track-apps:#1e3a5f;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08);
+  --radius:10px;--radius-sm:6px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;padding:0 5%}
+h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:600;line-height:1.25}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Tab bar */
+.tab-bar{position:sticky;top:0;z-index:100;background:var(--bg);padding:12px 0 0;border-bottom:1px solid var(--border)}
+.tab-bar-inner{display:flex;gap:0;max-width:900px;margin:0 auto}
+.tab-btn{flex:1;padding:10px 8px;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;color:var(--text-muted);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap}
+.tab-btn:hover{color:var(--accent)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#c0392b;color:#fff;font-size:.65rem;font-weight:700;margin-left:4px;vertical-align:middle;line-height:1}
+
+/* Header */
+.header{max-width:900px;margin:0 auto;padding:24px 0 8px}
+.header h1{font-size:1.75rem;color:var(--accent)}
+.header p{color:var(--text-muted);font-size:.9rem;margin-top:2px}
+
+/* Panels */
+.panel{max-width:900px;margin:0 auto;padding:16px 0 60px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:1.1rem;margin-bottom:12px}
+
+/* Sliders */
+.slider-group{margin-bottom:20px}
+.slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.875rem;font-weight:500}
+.slider-value{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent);font-weight:600;min-width:32px;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;background:var(--border)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+
+/* Toggles */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:.875rem;font-weight:500}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;margin-left:12px}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:#ccc;border-radius:12px;cursor:pointer;transition:background .25s}
+.toggle-track::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked+.toggle-track{background:var(--accent)}
+.toggle-switch input:checked+.toggle-track::after{transform:translateX(20px)}
+
+/* Select */
+.select-wrap{position:relative}
+.select-wrap select{font-family:'Inter',sans-serif;font-size:.875rem;padding:8px 32px 8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);cursor:pointer;appearance:none;-webkit-appearance:none;width:100%}
+.select-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text-muted);pointer-events:none}
+
+/* Buttons */
+.btn{font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;padding:10px 24px;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-light)}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#245a42}
+.btn-gray{background:#e8e4df;color:var(--text)}
+.btn-gray:hover{background:#d5d0ca}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:12px 28px;border-radius:var(--radius);font-size:.875rem;font-weight:500;box-shadow:var(--shadow-md);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Badges */
+.badge{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap;vertical-align:middle}
+.badge-mt{background:var(--track-mt)}.badge-writing{background:var(--track-writing)}
+.badge-art{background:var(--track-art)}.badge-psych{background:var(--track-psych)}
+.badge-pipeline{background:var(--track-pipeline)}.badge-academic{background:var(--track-academic)}
+.badge-essays{background:var(--track-essays)}.badge-ext{background:var(--track-ext)}
+.badge-planning{background:var(--track-planning)}.badge-apps{background:var(--track-apps)}
+.badge-cost{background:var(--gold);color:#fff}.badge-free{background:var(--green);color:#fff}
+.badge-award{background:var(--green);color:#fff}
+.badge-deadline{background:#7c3aed;color:#fff}
+
+/* Cost Meter */
+.meter-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.meter-numbers{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.sticker-price{font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--text-muted);text-decoration:line-through}
+.projected-cost{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;line-height:1.1}
+.total-savings{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:600;color:var(--green)}
+.meter-bar{height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative}
+.meter-fill{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1),background .6s}
+.streak-dots{display:flex;gap:4px;flex-wrap:wrap}
+.streak-dot{width:10px;height:10px;border-radius:50%;background:#e0dcd7;transition:background .3s}
+.streak-dot.active{background:var(--green)}
+
+/* New Finds */
+.new-finds-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.pulse-dot{width:10px;height:10px;border-radius:50%;background:#7c3aed;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.find-card{background:var(--card);border:2px solid #c5b4e3;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.find-card .find-name{font-weight:600;font-size:.95rem}
+.find-card .find-name a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+.find-card .find-name a:hover{color:var(--accent-light)}
+.find-card .find-why{font-size:.825rem;color:var(--text-muted);margin:6px 0 10px;line-height:1.45}
+.find-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.find-actions{display:flex;gap:8px}
+
+/* Quests */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pill{font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text-muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sort-bar{display:flex;gap:6px;margin-bottom:16px;align-items:center;font-size:.8rem;color:var(--text-muted)}
+.sort-bar .pill{font-size:.7rem;padding:4px 10px}
+
+.quest-card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);transition:opacity .3s,background .3s}
+.quest-card.completed{opacity:.55;background:#f7f6f3}
+.quest-check{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;margin-top:2px;background:var(--card)}
+.quest-check:hover{border-color:var(--accent)}
+.quest-check.done{background:var(--green);border-color:var(--green);color:#fff}
+.quest-check svg{width:14px;height:14px}
+.quest-body{flex:1;min-width:0}
+.quest-name{font-weight:600;font-size:.9rem;margin-bottom:3px;line-height:1.35}
+.quest-name a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:2px;text-decoration-thickness:1px}
+.quest-name a:hover{text-decoration-color:var(--accent);color:var(--accent)}
+.quest-desc{font-size:.8rem;color:var(--text-muted);margin-bottom:8px;line-height:1.4}
+.quest-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.quest-impact{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);font-weight:600}
+
+/* Roadmap */
+.roadmap-link{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;box-shadow:var(--shadow);transition:box-shadow .25s,transform .25s,border-color .25s}
+.roadmap-link:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
+.roadmap-link h3{font-size:1.3rem;color:var(--accent);margin-bottom:6px}
+.roadmap-link p{color:var(--text-muted);font-size:.9rem}
+.timeline{display:flex;align-items:flex-start;gap:0;margin-top:24px;overflow-x:auto;padding-bottom:12px}
+.tl-node{flex:1;min-width:110px;text-align:center;position:relative}
+.tl-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);margin:0 auto 8px;position:relative;z-index:2}
+.tl-node:not(:last-child) .tl-dot::after{content:'';position:absolute;top:50%;left:100%;width:calc(100% + 60px);height:2px;background:var(--border);transform:translateY(-50%);z-index:1}
+.tl-label{font-size:.7rem;font-weight:600;color:var(--accent);margin-bottom:3px;white-space:nowrap}
+.tl-desc{font-size:.65rem;color:var(--text-muted);line-height:1.35;padding:0 4px}
+
+/* Responsive */
+@media(max-width:640px){
+  body{padding:0 4%}
+  .header h1{font-size:1.35rem}
+  .tab-btn{font-size:.78rem;padding:8px 4px}
+  .meter-numbers{flex-direction:column;align-items:flex-start}
+  .projected-cost{font-size:1.6rem}
+  .quest-card{padding:12px}
+  .find-actions{flex-direction:column}
+  .find-actions .btn{width:100%;text-align:center}
+  .timeline{gap:0}
+  .tl-node{min-width:90px}
+}
+</style>
+</head>
+<body x-data="dashboard()" x-cloak>
+
+<!-- Toast -->
+<div class="toast" :class="{'show':toastVisible}" x-text="toastMsg"></div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-btn" :class="{'active':tab==='priorities'}" @click="tab='priorities'">1. My Priorities</button>
+    <button class="tab-btn" :class="{'active':tab==='quests'}" @click="tab='quests'">2. My Opportunities <span x-show="pendingCount > 0" x-cloak class="tab-badge" x-text="pendingCount"></span></button>
+    <button class="tab-btn" :class="{'active':tab==='roadmap'}" @click="tab='roadmap'">3. My Roadmap</button>
+  </div>
+</div>
+
+<!-- Header -->
+<div style="background:linear-gradient(135deg,#2c1810 0%,#4a2028 50%,#1a1a2e 100%);color:#fff;padding:28px 24px 22px;border-radius:0 0 16px 16px;margin:-1px -5.5% 0;width:111%;">
+  <div style="max-width:900px;margin:0 auto;">
+    <h1 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:4px;">Zora's Curtain Call</h1>
+    <p style="font-size:.88rem;opacity:.8;font-weight:300;max-width:560px;">Your personal scholarship and opportunity tracker. Set your priorities, explore what's out there, explore opportunities that lower your projected college cost, and watch new doors open every week.</p>
+    <template x-if="pendingCount > 0">
+      <div style="margin-top:14px;padding:10px 16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;gap:10px;cursor:pointer;" @click="tab='quests'">
+        <span style="width:8px;height:8px;border-radius:50%;background:#52b788;flex-shrink:0;animation:pulse 2s infinite;"></span>
+        <span style="font-size:.82rem;" x-text="pendingCount + ' new opportunity' + (pendingCount > 1 ? 's' : '') + ' found — tap to review'"></span>
+        <span style="margin-left:auto;font-size:.82rem;opacity:.7;">&rarr;</span>
+      </div>
+    </template>
+  </div>
+</div>
+<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}} .cal-btn:hover{background:rgba(255,255,255,.25) !important} .scout-btn:hover{opacity:.85}</style>
+
+<!-- ==================== TAB: QUESTS ==================== -->
+<div class="panel" x-show="tab==='quests'" x-transition.opacity>
+
+  <!-- Cost Meter -->
+  <div class="meter-wrap">
+    <div class="meter-numbers">
+      <div>
+        <div class="sticker-price" x-text="'$'+formatNum(dynamicSticker())+' sticker based on your interests'"></div>
+        <div class="projected-cost" :style="'color:'+meterColor()" x-text="'$'+formatNum(projectedCost())"></div>
+      </div>
+      <div class="total-savings">Saved: $<span x-text="formatNum(totalSaved())"></span></div>
+    </div>
+    <div class="meter-bar">
+      <div class="meter-fill" :style="'width:'+(100-savingsPercent())+'%;background:'+meterColor()"></div>
+    </div>
+    <div class="streak-dots">
+      <template x-for="i in 30">
+        <div class="streak-dot" :class="{'active':completedCount()>=i}"></div>
+      </template>
+    </div>
+  </div>
+
+  <!-- New Finds -->
+  <template x-if="pendingFinds().length>0">
+    <div style="margin-bottom:20px">
+      <div class="new-finds-header">
+        <div class="pulse-dot"></div>
+        <h3 style="font-size:1rem">New Opportunities Found This Week</h3>
+      </div>
+      <template x-for="f in pendingFinds()" :key="f.id">
+        <div class="find-card">
+          <div class="find-name"><a :href="f.url" target="_blank" rel="noopener noreferrer" x-text="f.name"></a></div>
+          <div class="find-why" x-text="f.why"></div>
+          <div class="find-badges">
+            <span class="badge" :class="trackBadgeClass(f.track)" x-text="f.track"></span>
+            <template x-if="f.cost">
+              <span class="badge" :class="f.cost==='FREE'?'badge-free':'badge-cost'" x-text="f.cost"></span>
+            </template>
+            <template x-if="f.award">
+              <span class="badge badge-award" x-text="f.award"></span>
+            </template>
+          </div>
+          <div class="find-actions">
+            <button class="btn btn-sm btn-green" @click="acceptFind(f.id)">I'm Interested &#10003;</button>
+            <button class="btn btn-sm btn-gray" @click="dismissFind(f.id)">Not For Me &#10007;</button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <!-- Last search info -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;font-size:.78rem;color:var(--text-muted);">
+    <span x-text="'Last searched: ' + lastSearchDate()"></span>
+    <span x-text="'Next search: ' + nextSearchDate()"></span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <template x-for="f in filters" :key="f">
+      <button class="pill" :class="{'active':activeFilter===f}" @click="activeFilter=f" x-text="f"></button>
+    </template>
+  </div>
+  <div class="sort-bar">
+    <span>Sort:</span>
+    <button class="pill" :class="{'active':activeSort==='timeline'}" @click="activeSort='timeline'">Timeline</button>
+    <button class="pill" :class="{'active':activeSort==='impact'}" @click="activeSort='impact'">Impact ($)</button>
+    <button class="pill" :class="{'active':activeSort==='match'}" @click="activeSort='match'">Match</button>
+  </div>
+
+  <!-- Opportunity List -->
+  <template x-for="q in filteredQuests()" :key="q.id">
+    <div class="quest-card" :class="{'completed':isCompleted(q.id)}">
+      <div class="quest-check" :class="{'done':isCompleted(q.id)}" @click="toggleQuest(q.id)">
+        <svg x-show="isCompleted(q.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <div class="quest-body">
+        <div class="quest-name">
+          <template x-if="q.url">
+            <a :href="q.url" target="_blank" rel="noopener noreferrer" x-text="q.name"></a>
+          </template>
+          <template x-if="!q.url">
+            <span x-text="q.name"></span>
+          </template>
+        </div>
+        <div class="quest-desc" x-text="q.desc"></div>
+        <div class="quest-tags">
+          <span class="badge" :class="trackBadgeClass(q.track)" x-text="q.track"></span>
+          <span class="badge badge-deadline" x-text="q.when"></span>
+          <span class="badge" :class="q.cost==='FREE'?'badge-free':'badge-cost'" x-text="q.cost"></span>
+        </div>
+        <div class="quest-impact">-$<span x-text="formatNum(q.saves)"></span> potential savings</div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<!-- ==================== TAB: PRIORITIES ==================== -->
+<div class="panel" x-show="tab==='priorities'" x-transition.opacity>
+
+  <!-- Interest Sliders -->
+  <div class="card">
+    <h3 class="card-title">Interest Areas</h3>
+    <template x-for="s in sliders" :key="s.key">
+      <div class="slider-group">
+        <div class="slider-label">
+          <span x-text="s.label"></span>
+          <span class="slider-value" x-text="prefs[s.key]"></span>
+        </div>
+        <input type="range" min="0" max="100" x-model.number="prefs[s.key]"
+          :style="'background:linear-gradient(to right,var(--accent) 0%,var(--accent) '+prefs[s.key]+'%,#e8e4df '+prefs[s.key]+'%,#e8e4df 100%)'">
+      </div>
+    </template>
+  </div>
+
+  <!-- Location -->
+  <div class="card">
+    <h3 class="card-title">Location</h3>
+    <div class="toggle-row">
+      <span class="toggle-label">Home base</span>
+      <span style="font-size:.875rem;color:var(--text-muted)">Dripping Springs, TX</span>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Max distance</span>
+      <div class="select-wrap" style="width:140px">
+        <select x-model="prefs.maxDistance">
+          <option value="30mi">30 mi</option>
+          <option value="60mi">60 mi</option>
+          <option value="120mi">120 mi</option>
+          <option value="Anywhere">Anywhere</option>
+        </select>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Open to out-of-state college</span>
+      <label class="toggle-switch">
+        <input type="checkbox" x-model="prefs.outOfState">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Open to international</span>
+      <label class="toggle-switch">
+        <input type="checkbox" x-model="prefs.international">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Opportunity Types -->
+  <div class="card">
+    <h3 class="card-title">Opportunity Types</h3>
+    <template x-for="o in oppTypes" :key="o.key">
+      <div class="toggle-row">
+        <span class="toggle-label" x-text="o.label"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" x-model="prefs[o.key]">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </template>
+  </div>
+
+  <button class="btn btn-primary" style="width:100%;margin-top:8px" :disabled="saving" @click="saveAll()">
+    <span x-show="!saving">Save My Preferences</span>
+    <span x-show="saving" x-cloak>Saving...</span>
+  </button>
+  <p style="font-size:.72rem;color:var(--text-muted);text-align:center;margin-top:6px;">Saves your settings and updates which opportunities are shown to you.</p>
+</div>
+
+<!-- ==================== TAB: ROADMAP ==================== -->
+<div class="panel" x-show="tab==='roadmap'" x-transition.opacity>
+
+  <!-- NEXT UP: prioritized to-dos -->
+  <div class="card" style="border-left:4px solid var(--accent);margin-bottom:20px;">
+    <h3 class="card-title" style="font-size:1rem;">Up Next For You</h3>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px;">Your highest-priority next steps based on timeline and your interest settings.</p>
+    <template x-for="q in nextTodos()" :key="q.id">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem;transition:.2s;" :style="isCompleted(q.id)?'background:var(--green);border-color:var(--green);color:#fff':''" @click="toggleQuest(q.id)">
+          <span x-show="isCompleted(q.id)">&#10003;</span>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.88rem;">
+            <template x-if="q.url"><a :href="q.url" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(74,32,40,.2);" x-text="q.name"></a></template>
+            <template x-if="!q.url"><span x-text="q.name"></span></template>
+          </div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:2px;" x-text="q.when + (q.cost==='FREE'?' \u2022 Free':' \u2022 '+q.cost)"></div>
+        </div>
+        <div class="mono" style="font-size:.75rem;color:var(--green);white-space:nowrap;font-weight:600;" x-text="'-$'+q.saves.toLocaleString()"></div>
+      </div>
+    </template>
+    <div style="text-align:center;margin-top:12px;">
+      <button class="btn btn-sm btn-primary" @click="tab='quests'" style="font-size:.78rem;">See all opportunities &rarr;</button>
+    </div>
+  </div>
+
+  <!-- FULL TIMELINE -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+    <h3 style="font-size:1.15rem;margin:0;">Your Full Timeline</h3>
+    <a href="webcal://pub.hyperagent.com/api/published/5QD-Gj4M5pf90Nba_Iy84A/zora-deadlines.ics" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:var(--accent);color:#fff;border-radius:6px;font-size:.75rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;" class="cal-btn">📅 Add to Calendar</a>
+  </div>
+  <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px;">Everything from now through Commitment Day, with links to every program and application. <span style="color:var(--accent);">Calendar alerts fire at 30, 7, and 1 day before each deadline.</span></p>
+
+  <!-- NOW -->
+  <div class="card" style="border-left:4px solid var(--accent);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h3 style="font-size:1rem;color:var(--accent);margin:0;">Now &mdash; Sophomore Spring</h3>
+      <span style="font-size:.65rem;font-weight:600;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;text-transform:uppercase;">You are here</span>
+    </div>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Your summer plans are in motion. Use your free time to start building the materials that every future application will pull from.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; Start writing your first <strong>10-minute play</strong> (seeds <a href="https://www.theblank.com/young-playwrights-festival" target="_blank" rel="noopener noreferrer">Blank Theatre</a>, <a href="https://youngplaywrights.org/" target="_blank" rel="noopener noreferrer">Young Playwrights</a>, <a href="https://www.artandwriting.org/" target="_blank" rel="noopener noreferrer">Scholastic</a> entries)<br>
+      &bull; Begin <strong>visual art portfolio</strong> &mdash; 3-4 pieces across media (for <a href="https://www.youngarts.org/" target="_blank" rel="noopener noreferrer">YoungArts</a>, <a href="https://www.scad.edu/admission/scholarships/scad-challenge" target="_blank" rel="noopener noreferrer">SCAD Challenge</a>, <a href="https://www.house.gov/educators-and-students/congressional-art-competition" target="_blank" rel="noopener noreferrer">Congressional Art</a>)<br>
+      &bull; Book a <strong>professional headshot</strong> in Austin &mdash; two looks: theatrical + commercial<br>
+      &bull; Start <strong>audition book</strong> with a voice teacher &mdash; 3-4 contrasting 32-bar cuts<br>
+      &bull; Begin <a href="https://www.khanacademy.org/digital-sat" target="_blank" rel="noopener noreferrer"><strong>PSAT prep</strong></a> (free on Khan Academy, TX National Merit cutoff ~222)
+    </div>
+  </div>
+
+  <!-- SUMMER 2026 -->
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--gold);margin-bottom:6px;">Summer 2026 &mdash; Rising Junior</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Your summer plans are yours. In your free time, keep building independently.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; Get headshot taken &bull; Build audition book &bull; Finish 10-min play &bull; Grow art portfolio to 8-10 pieces &bull; PSAT practice tests
+    </div>
+  </div>
+
+  <!-- FALL 2026 -->
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--green);margin-bottom:6px;">Fall 2026 &mdash; Junior Year Begins</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">The two most impactful deadlines of your high school career land here.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; <strong>PSAT/NMSQT</strong> &mdash; October (<a href="https://www.nationalmerit.org/" target="_blank" rel="noopener noreferrer">National Merit</a> $2.5K-$10K + full rides)<br>
+      &bull; <a href="https://www.youngarts.org/apply" target="_blank" rel="noopener noreferrer"><strong>YoungArts</strong></a> &mdash; Oct 8 deadline (MT + Writing + Visual Arts, $250-$10K + <a href="https://www2.ed.gov/programs/psp/index.html" target="_blank" rel="noopener noreferrer">Presidential Scholars</a> gateway)<br>
+      &bull; <a href="https://www.artandwriting.org/awards/how-to-enter/" target="_blank" rel="noopener noreferrer"><strong>Scholastic Art &amp; Writing</strong></a> &mdash; Jan 2027 (Drama, Art, Design, Poetry &mdash; Gold Key &rarr; $12.5K)<br>
+      &bull; Campus visits: <a href="https://www.theatreanddance.txstate.edu/" target="_blank" rel="noopener noreferrer">Texas State</a> (20 min), <a href="https://theatredance.utexas.edu/" target="_blank" rel="noopener noreferrer">UT Austin</a> (30 min), <a href="https://stedwards.edu/academics/majors-programs/theatre-arts" target="_blank" rel="noopener noreferrer">St. Edward's</a> (30 min), <a href="https://www.smu.edu/meadows" target="_blank" rel="noopener noreferrer">SMU</a>, <a href="https://admissions.web.baylor.edu/" target="_blank" rel="noopener noreferrer">Baylor</a><br>
+      &bull; Start <strong>essay bank</strong> (<a href="https://www.commonapp.org/apply/essay-prompts" target="_blank" rel="noopener noreferrer">Common App prompts</a>) &bull; Start <strong>AP Psych</strong> track
+    </div>
+  </div>
+
+  <!-- SPRING 2027 -->
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--track-writing);margin-bottom:6px;">Spring 2027 &mdash; Competition Season</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Your writing and art portfolios enter the arena. Most competitions are free.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; <a href="https://youngplaywrights.org/" target="_blank" rel="noopener noreferrer"><strong>Young Playwrights Inc</strong></a> &mdash; Jan (free, off-Broadway production)<br>
+      &bull; <a href="https://www.scad.edu/admission/scholarships/scad-challenge" target="_blank" rel="noopener noreferrer"><strong>SCAD Challenge</strong></a> &mdash; Feb (free, $8K-$16K stackable)<br>
+      &bull; <a href="https://www.theblank.com/young-playwrights-festival" target="_blank" rel="noopener noreferrer"><strong>Blank Theatre YPF</strong></a> &mdash; Mar 15 (free, professional LA production)<br>
+      &bull; <a href="https://www.house.gov/educators-and-students/congressional-art-competition" target="_blank" rel="noopener noreferrer"><strong>Congressional Art</strong></a> &mdash; Apr/May (free, art in the US Capitol)<br>
+      &bull; Apply to Summer 2027: <a href="https://www.theatreanddance.txstate.edu/theatre/summer-camps/nexus-texas-state-musical-theatre-pre-college-intensive.html" target="_blank" rel="noopener noreferrer">NEXUS</a>, <a href="https://nhsi.northwestern.edu/" target="_blank" rel="noopener noreferrer">NHSI</a>, <a href="https://iyws.clas.uiowa.edu/" target="_blank" rel="noopener noreferrer">Iowa Writers</a>, <a href="https://admission.enrollment.cmu.edu/pages/pre-college-drama" target="_blank" rel="noopener noreferrer">CMU</a>, <a href="https://bada.org.uk/" target="_blank" rel="noopener noreferrer">BADA Oxford</a><br>
+      &bull; <a href="https://satsuite.collegeboard.org/sat/registration" target="_blank" rel="noopener noreferrer"><strong>SAT/ACT</strong></a> first attempt &bull; Build college list (15-20 schools)
+    </div>
+  </div>
+
+  <!-- SUMMER 2027 -->
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--track-psych);margin-bottom:6px;">Summer 2027 &mdash; The Pivotal Summer</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Everything shifts into application mode. NEXUS + prescreens + final portfolio polish.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; <a href="https://www.theatreanddance.txstate.edu/theatre/summer-camps/nexus-texas-state-musical-theatre-pre-college-intensive.html" target="_blank" rel="noopener noreferrer"><strong>NEXUS Pre-College MT Camp</strong></a> at Texas State (20 min from home)<br>
+      &bull; Optional 2nd intensive: <a href="https://nhsi.northwestern.edu/" target="_blank" rel="noopener noreferrer">NHSI</a>, <a href="https://iyws.clas.uiowa.edu/" target="_blank" rel="noopener noreferrer">Iowa</a>, <a href="https://admission.enrollment.cmu.edu/pages/pre-college-drama" target="_blank" rel="noopener noreferrer">CMU</a>, <a href="https://bada.org.uk/" target="_blank" rel="noopener noreferrer">BADA</a>, <a href="https://www.rada.ac.uk/courses/short-courses/" target="_blank" rel="noopener noreferrer">RADA</a><br>
+      &bull; Record <strong>prescreen videos</strong> (upload via <a href="https://app.acceptd.com/" target="_blank" rel="noopener noreferrer">AcceptD</a>)<br>
+      &bull; Finalize <strong>essays</strong> + <strong>art portfolio</strong> (upload to <a href="https://www.slideroom.com/" target="_blank" rel="noopener noreferrer">SlideRoom</a>)
+    </div>
+  </div>
+
+  <!-- FALL 2027 -->
+  <div class="card">
+    <h3 style="font-size:1rem;color:var(--accent);margin-bottom:6px;">Fall 2027 &mdash; Application Season</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Everything you've built comes together. Execute the plan.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; <a href="https://www.commonapp.org/" target="_blank" rel="noopener noreferrer"><strong>Common App</strong></a> opens Aug 1<br>
+      &bull; <strong>Nov 1:</strong> EA deadlines (<a href="https://finearts.tcu.edu/" target="_blank" rel="noopener noreferrer">TCU</a>, <a href="https://admissions.web.baylor.edu/" target="_blank" rel="noopener noreferrer">Baylor</a>, <a href="https://www.elon.edu/" target="_blank" rel="noopener noreferrer">Elon</a> ED)<br>
+      &bull; <strong>Dec 1:</strong> <a href="https://www.smu.edu/meadows" target="_blank" rel="noopener noreferrer">SMU</a>, <a href="https://www.theatreanddance.txstate.edu/" target="_blank" rel="noopener noreferrer">Texas State</a>, <a href="https://smtd.umich.edu/" target="_blank" rel="noopener noreferrer">Michigan</a>, <a href="https://ccm.uc.edu/" target="_blank" rel="noopener noreferrer">CCM</a>, <a href="https://www.cmu.edu/cfa/drama/" target="_blank" rel="noopener noreferrer">CMU</a>, <a href="https://tisch.nyu.edu/" target="_blank" rel="noopener noreferrer">NYU</a>, <a href="https://theatredance.utexas.edu/" target="_blank" rel="noopener noreferrer">UT</a>, <a href="https://www.vanderbilt.edu/scholarships/" target="_blank" rel="noopener noreferrer">Vanderbilt</a><br>
+      &bull; Prescreens Sept-Nov via <a href="https://app.acceptd.com/" target="_blank" rel="noopener noreferrer">AcceptD</a><br>
+      &bull; <a href="https://www.coca-colascholarsfoundation.org/apply/" target="_blank" rel="noopener noreferrer"><strong>Coca-Cola Scholars</strong></a> (Aug-Oct, $20K) &bull; <a href="https://www.youngarts.org/apply" target="_blank" rel="noopener noreferrer">YoungArts</a> reapply if needed<br>
+      &bull; <a href="https://www.artandwriting.org/awards/portfolios/" target="_blank" rel="noopener noreferrer"><strong>Scholastic Gold Medal Portfolio</strong></a> ($12.5K) &bull; <a href="https://www.elks.org/scholars/scholarships/MVS.cfm" target="_blank" rel="noopener noreferrer">Elks</a>, <a href="https://www.axa-achievement.com/" target="_blank" rel="noopener noreferrer">AXA</a>, <a href="https://www.rodeohouston.com/get-involved/scholarships/" target="_blank" rel="noopener noreferrer">Houston Rodeo</a>
+    </div>
+  </div>
+
+  <!-- SPRING 2028 -->
+  <div class="card" style="border-left:4px solid var(--green);">
+    <h3 style="font-size:1rem;color:var(--green);margin-bottom:6px;">Spring 2028 &mdash; Audition Season &amp; Decision Day</h3>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">This is what it's all been for.</p>
+    <div style="font-size:.84rem;line-height:2;">
+      &bull; <a href="https://www.unifiedauditions.com/" target="_blank" rel="noopener noreferrer"><strong>Unifieds</strong></a> &mdash; audition for multiple schools in one weekend (Jan-Feb)<br>
+      &bull; Campus callbacks (Feb-Mar) &bull; <strong>Jan 5:</strong> <a href="https://tisch.nyu.edu/" target="_blank" rel="noopener noreferrer">NYU</a>, <a href="https://www.pratt.edu/" target="_blank" rel="noopener noreferrer">Pratt</a> RD<br>
+      &bull; <strong>Feb 7:</strong> <a href="https://www.trinity.edu/directory/departments-offices/student-financial-services/financial-aid/scholarship/baker-duncan-theatre-scholarship" target="_blank" rel="noopener noreferrer">Trinity Baker Duncan</a> ($10K/yr) &bull; <strong>Feb:</strong> <a href="https://stedwards.edu/academics/centers-institutes-arts/mary-moody-northen-theatre/scholarship-audition-weekend" target="_blank" rel="noopener noreferrer">St. Edward's Scholarship Audition</a><br>
+      &bull; <strong>UCAS Jan:</strong> UK conservatoires &mdash; <a href="https://www.gsauk.org/" target="_blank" rel="noopener noreferrer">GSA</a>, <a href="https://www.rada.ac.uk/" target="_blank" rel="noopener noreferrer">RADA</a>, <a href="https://www.lamda.ac.uk/" target="_blank" rel="noopener noreferrer">LAMDA</a>, <a href="https://www.nida.edu.au/" target="_blank" rel="noopener noreferrer">NIDA Australia</a><br>
+      &bull; Financial aid offers arrive (March) &bull; Compare net cost &bull; Negotiate<br>
+      &bull; <strong style="color:var(--green);">Commitment Day &mdash; May 1, 2028</strong>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+function dashboard(){
+  const STORAGE_KEY='zora_dash_v2';
+  function load(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch(e){return fallback}}
+  function save(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+
+  const defaultPrefs={
+    musicalTheatre:95,acting:80,writing:75,directing:70,
+    psychology:65,fineArt:60,studyAbroad:50,graphicDesign:40,
+    maxDistance:'60mi',outOfState:true,international:true,
+    collegeMerit:true,externalScholarships:true,competitions:true,
+    pipelineCreds:true,summerPrograms:true,studyAbroadOpp:true,
+    workApprentice:true,schoolCovers:false
+  };
+
+  const allQuests=[
+    {id:1,name:"Write your first 10-minute play",url:null,track:"Writing",when:"Now",cost:"FREE",saves:2000,desc:"Pick a moment, two characters, a room. Rough draft by end of summer. Seeds every writing competition entry.",phase:"Now",match:75},
+    {id:2,name:"Begin visual art portfolio (3-4 pieces)",url:null,track:"Fine Art",when:"Now",cost:"$50-$200",saves:1500,desc:"Sketch, paint, experiment across media. Each piece is ammunition for competitions and art school portfolios.",phase:"Now",match:60},
+    {id:3,name:"Book a professional headshot",url:null,track:"MT/Acting",when:"This Summer",cost:"$150-$400",saves:500,desc:"Two looks: theatrical + commercial. This single photo appears on 20+ applications.",phase:"Now",match:95},
+    {id:4,name:"Start building audition book",url:null,track:"MT/Acting",when:"This Summer",cost:"$50-$150/mo",saves:3000,desc:"Select 3-4 contrasting 32-bar cuts. Start monologue coaching. Record yourself for self-tape comfort.",phase:"Now",match:95},
+    {id:5,name:"Start PSAT prep on Khan Academy",url:"https://www.khanacademy.org/digital-sat",track:"Academic",when:"This Summer",cost:"FREE",saves:10000,desc:"Free online prep. Take 2-3 practice tests. TX National Merit cutoff ~222. Hit that = $2.5K-$10K + partner full rides.",phase:"Now",match:70},
+    {id:6,name:"Take the PSAT/NMSQT",url:"https://www.nationalmerit.org/",track:"Academic",when:"Oct 2026",cost:"~$20",saves:15000,desc:"One shot. TX cutoff ~222. This single test can unlock full-ride offers at National Merit partner schools.",phase:"Fall 2026",match:70},
+    {id:7,name:"Apply to YoungArts (MT + Writing + Visual Arts)",url:"https://www.youngarts.org/apply",track:"Pipeline",when:"Oct 8, 2026",cost:"$35/discipline",saves:8000,desc:"Submit in up to 3 disciplines. Gateway to Presidential Scholars \u2014 the most prestigious honor for HS artists.",phase:"Fall 2026",match:90},
+    {id:8,name:"Submit to Scholastic Art & Writing Awards",url:"https://www.artandwriting.org/awards/how-to-enter/",track:"Pipeline",when:"Jan 2027",cost:"FREE",saves:6000,desc:"Enter Drama, Fine Art, Design, Poetry \u2014 as many categories as you want. Gold Keys build toward the $12.5K Portfolio prize.",phase:"Fall 2026",match:85},
+    {id:9,name:"Visit Texas State campus",url:"https://www.theatreanddance.txstate.edu/",track:"MT/Acting",when:"Fall 2026",cost:"FREE",saves:1000,desc:"20 min from home. See the BFA program live. Meet faculty. You\u2019ll be at NEXUS here next summer.",phase:"Fall 2026",match:95},
+    {id:10,name:"Visit UT Austin Theatre & Dance",url:"https://theatredance.utexas.edu/",track:"MT/Acting",when:"Fall 2026",cost:"FREE",saves:1000,desc:"30 min drive. Tour the department. See a production. Form real opinions for your \u2018Why this school\u2019 essay.",phase:"Fall 2026",match:90},
+    {id:11,name:"Visit St. Edward\u2019s Mary Moody Northen Theatre",url:"https://stedwards.edu/academics/majors-programs/theatre-arts",track:"MT/Acting",when:"Fall 2026",cost:"FREE",saves:1000,desc:"30 min. Only undergrad in the US with a full Actors\u2019 Equity season. See pros + students perform together.",phase:"Fall 2026",match:85},
+    {id:12,name:"Start your essay bank",url:"https://www.commonapp.org/apply/essay-prompts",track:"Essays",when:"Fall 2026",cost:"FREE",saves:2000,desc:"First draft of \u2018Why Theatre\u2019 (500-650 words). Not what you\u2019ve done, but why it matters. This becomes every app\u2019s core.",phase:"Fall 2026",match:80},
+    {id:13,name:"Start AP Psychology or independent study",url:null,track:"Psychology",when:"Fall 2026",cost:"FREE",saves:3000,desc:"Take the class or start reading about executive function + creativity. Reach out to a UT or Rice professor.",phase:"Fall 2026",match:65},
+    {id:14,name:"Submit to Young Playwrights Inc NYC",url:"https://youngplaywrights.org/",track:"Writing",when:"Jan 2027",cost:"FREE",saves:2500,desc:"Your polished original play. Winners get an off-Broadway reading. Free to enter.",phase:"Spring 2027",match:75},
+    {id:15,name:"Submit to Blank Theatre Young Playwrights",url:"https://www.theblank.com/young-playwrights-festival",track:"Writing",when:"Mar 15, 2027",cost:"FREE",saves:3000,desc:"Top 12 scripts professionally produced in LA with travel covered. One of the top credentials a teen playwright can earn.",phase:"Spring 2027",match:75},
+    {id:16,name:"Enter SCAD Challenge",url:"https://www.scad.edu/admission/scholarships/scad-challenge",track:"Fine Art",when:"Feb 2027",cost:"FREE",saves:8000,desc:"Online creative challenge. Stackable scholarship: Platinum $4K/yr, Gold $3K/yr, Silver $2K/yr.",phase:"Spring 2027",match:60},
+    {id:17,name:"Enter Congressional Art Competition",url:"https://www.house.gov/educators-and-students/congressional-art-competition",track:"Fine Art",when:"Apr/May 2027",cost:"FREE",saves:500,desc:"2D artwork via your US Representative. Win = your art hangs in the US Capitol for a year.",phase:"Spring 2027",match:55},
+    {id:18,name:"Apply to NEXUS + elite Summer 2027 programs",url:"https://www.theatreanddance.txstate.edu/theatre/summer-camps/nexus-texas-state-musical-theatre-pre-college-intensive.html",track:"MT/Acting",when:"Feb-Mar 2027",cost:"$0-$75 app fees",saves:5000,desc:"NEXUS at Texas State is the plan. Optionally add: NHSI, Iowa Writers, CMU Pre-College, BADA Oxford, or RADA Summer.",phase:"Spring 2027",match:95},
+    {id:19,name:"Take SAT or ACT (first attempt)",url:"https://satsuite.collegeboard.org/sat/registration",track:"Academic",when:"Spring 2027",cost:"$55-$70",saves:5000,desc:"Spring junior year. Strong scores unlock automatic merit tiers. Retake senior fall if needed.",phase:"Spring 2027",match:70},
+    {id:20,name:"Build college list (15-20 schools)",url:null,track:"Planning",when:"Spring 2027",cost:"FREE",saves:2000,desc:"Reach: Michigan, CCM, CMU, NYU. Target: Elon, Pace, Point Park. Likely: Texas State, SMU, OCU. Creative: UK, Trinity, Northwestern.",phase:"Spring 2027",match:85},
+    {id:21,name:"Attend NEXUS at Texas State",url:"https://www.theatreanddance.txstate.edu/theatre/summer-camps/nexus-texas-state-musical-theatre-pre-college-intensive.html",track:"MT/Acting",when:"Summer 2027",cost:"$500-$1,500",saves:8000,desc:"Train with BFA faculty 20 min from home. By now you have Summer Stock + teaching experience. Be the student they remember.",phase:"Summer 2027",match:95},
+    {id:22,name:"Record prescreen audition videos",url:"https://app.acceptd.com/",track:"MT/Acting",when:"Summer 2027",cost:"$0-$500",saves:5000,desc:"High-quality self-tapes: 2 monologues + 2-4 songs. Multiple takes. Upload via AcceptD. These get you into the room.",phase:"Summer 2027",match:95},
+    {id:23,name:"Finalize essay bank + supplements",url:"https://www.commonapp.org/apply/essay-prompts",track:"Essays",when:"Summer 2027",cost:"FREE",saves:2000,desc:"Polish core essays. Write \u2018Why this school\u2019 for top 10. Have a teacher review everything.",phase:"Summer 2027",match:80},
+    {id:24,name:"Finalize visual art portfolio (15-20 pieces)",url:"https://www.slideroom.com/",track:"Fine Art",when:"Summer 2027",cost:"$50-$100",saves:4000,desc:"Professional documentation. Upload to SlideRoom. Artist statement done. Ready for RISD, MICA, SCAD, Pratt.",phase:"Summer 2027",match:60},
+    {id:25,name:"Apply to Coca-Cola Scholars",url:"https://www.coca-colascholarsfoundation.org/apply/",track:"External $",when:"Aug-Oct 2027",cost:"FREE",saves:5000,desc:"150 scholars from ~100K applicants. $20,000 award. Your essay bank is ready.",phase:"Senior Year",match:65},
+    {id:26,name:"Submit college applications (Dec 1 wave)",url:"https://www.commonapp.org/",track:"Applications",when:"Nov-Dec 2027",cost:"$600-$1,350",saves:20000,desc:"SMU, Texas State, Michigan, CCM, CMU, NYU, UT Austin. Prescreens recorded, essays polished. Execute.",phase:"Senior Year",match:95},
+    {id:27,name:"Apply for Scholastic Gold Medal Portfolio",url:"https://www.artandwriting.org/awards/portfolios/",track:"Pipeline",when:"Jan 2028",cost:"FREE",saves:6000,desc:"6-work senior portfolio. Top prize: $12,500. You\u2019ve been building Gold Keys for two years.",phase:"Senior Year",match:80},
+    {id:28,name:"Apply to Trinity Baker Duncan Scholarship",url:"https://www.trinity.edu/directory/departments-offices/student-financial-services/financial-aid/scholarship/baker-duncan-theatre-scholarship",track:"External $",when:"Feb 7, 2028",cost:"FREE",saves:10000,desc:"$10K/yr renewable. Separate app + monologue video + Zoom. Stacks with Tower (full tuition for top 20).",phase:"Senior Year",match:85},
+    {id:29,name:"Apply for Houston Rodeo Fine Arts Scholarship",url:"https://www.rodeohouston.com/get-involved/scholarships/",track:"External $",when:"Feb 2028",cost:"FREE",saves:5000,desc:"$20,000 (4-year). Texas residents. Academic + activities. Fine Arts track.",phase:"Senior Year",match:60},
+    {id:30,name:"Audition at Unifieds + campus callbacks",url:"https://www.unifiedauditions.com/",track:"MT/Acting",when:"Jan-Mar 2028",cost:"$500-$3,000",saves:25000,desc:"Multiple schools in one weekend (Chicago, NYC, LA). Then campus callbacks. This is what it\u2019s all for.",phase:"Senior Year",match:95}
+  ];
+
+  // School cost data: 4-year sticker prices with tags for dynamic meter
+  const schools=[
+    // Texas In-State (MT/Acting)
+    {name:"Texas State",cost4yr:48000,tags:["mt","acting"],inState:true,intl:false},
+    {name:"UT Austin",cost4yr:56000,tags:["mt","acting","psych"],inState:true,intl:false},
+    {name:"Sam Houston State",cost4yr:44000,tags:["mt"],inState:true,intl:false},
+    // Texas Private
+    {name:"SMU Meadows",cost4yr:300000,tags:["mt","acting"],inState:true,intl:false},
+    {name:"Baylor",cost4yr:304000,tags:["mt","acting"],inState:true,intl:false},
+    {name:"TCU",cost4yr:260000,tags:["mt","acting"],inState:true,intl:false},
+    {name:"St. Edward's",cost4yr:220000,tags:["mt","acting"],inState:true,intl:false},
+    {name:"Trinity",cost4yr:220000,tags:["mt","psych"],inState:true,intl:false},
+    {name:"Southwestern",cost4yr:220000,tags:["mt","psych"],inState:true,intl:false},
+    // National MT/Acting (out of state)
+    {name:"NYU Tisch",cost4yr:340000,tags:["mt","acting","writing"],inState:false,intl:false},
+    {name:"CMU",cost4yr:320000,tags:["mt","acting","writing","directing"],inState:false,intl:false},
+    {name:"Michigan",cost4yr:240000,tags:["mt"],inState:false,intl:false},
+    {name:"CCM Cincinnati",cost4yr:180000,tags:["mt"],inState:false,intl:false},
+    {name:"Elon",cost4yr:220000,tags:["mt"],inState:false,intl:false},
+    {name:"Pace",cost4yr:260000,tags:["mt","directing"],inState:false,intl:false},
+    {name:"Point Park",cost4yr:180000,tags:["mt"],inState:false,intl:false},
+    {name:"Shenandoah",cost4yr:200000,tags:["mt"],inState:false,intl:false},
+    {name:"OCU",cost4yr:180000,tags:["mt"],inState:false,intl:false},
+    {name:"USC",cost4yr:320000,tags:["mt","acting","directing"],inState:false,intl:false},
+    // Art Schools (out of state)
+    {name:"MICA",cost4yr:240000,tags:["art"],inState:false,intl:false},
+    {name:"SCAD",cost4yr:220000,tags:["art"],inState:false,intl:false},
+    {name:"Pratt",cost4yr:260000,tags:["art"],inState:false,intl:false},
+    {name:"Ringling",cost4yr:320000,tags:["art"],inState:false,intl:false},
+    // Psychology/Academic (out of state)
+    {name:"Rice",cost4yr:260000,tags:["psych"],inState:true,intl:false},
+    {name:"Vanderbilt",cost4yr:300000,tags:["psych"],inState:false,intl:false},
+    {name:"Northwestern",cost4yr:320000,tags:["psych","mt"],inState:false,intl:false},
+    // International (3-year degrees)
+    {name:"RADA",cost4yr:99000,tags:["mt","acting"],inState:false,intl:true},
+    {name:"LAMDA",cost4yr:99000,tags:["mt","acting"],inState:false,intl:true},
+    {name:"GSA Guildford",cost4yr:84000,tags:["mt"],inState:false,intl:true},
+    {name:"NIDA Australia",cost4yr:75000,tags:["acting"],inState:false,intl:true},
+  ];
+
+  const tagToSlider={mt:'musicalTheatre',acting:'acting',writing:'writing',directing:'directing',psych:'psychology',art:'fineArt',abroad:'studyAbroad',design:'graphicDesign'};
+
+  const defaultFinds=[
+    {id:'f1',name:'Emerson College BFA Stage/Screen',url:'https://www.emerson.edu/academics/programs/performing-arts-bfa',track:'MT/Acting',why:'Strong Writing + Directing blend in a conservatory BFA. Matches your creative leadership interest.',cost:'Net $40-55K/yr',award:'Merit $15-30K/yr',status:'pending'},
+    {id:'f2',name:'Princess Grace Foundation Awards',url:'https://www.pgfusa.org/awards',track:'Pipeline',why:'Prestigious college-level arts award. Building toward it now with YoungArts and Scholastic wins.',cost:'FREE',award:'$5,000-$30,000 + mentorship',status:'pending'},
+    {id:'f3',name:'Texas Young Masters Program',url:'https://www.tfaoi.com/texas-young-masters',track:'Pipeline',why:'Texas-specific arts credential with $5K + mentorship from a master artist. Your MT + Art portfolio makes you a strong candidate.',cost:'FREE',award:'$5,000 + mentorship',status:'pending'}
+  ];
+
+  const saved=load(STORAGE_KEY,{});
+
+  return {
+    tab:'priorities',
+    toastVisible:false,
+    toastMsg:'',
+
+    prefs:Object.assign({},defaultPrefs,saved.prefs||{}),
+    completed:new Set(saved.completed||[]),
+    finds:saved.finds||JSON.parse(JSON.stringify(defaultFinds)),
+    quests:allQuests,
+
+    filters:['All','Do Now','Fall 2026','Spring 2027','Summer 2027','Senior Year','Free Only'],
+    activeFilter:'All',
+    activeSort:'timeline',
+
+    sliders:[
+      {key:'musicalTheatre',label:'Musical Theatre (Performance)'},
+      {key:'acting',label:'Acting / Drama'},
+      {key:'writing',label:'Writing / Playwriting / Screenwriting'},
+      {key:'directing',label:'Directing / Producing'},
+      {key:'psychology',label:'Psychology / Cognitive Science'},
+      {key:'fineArt',label:'Fine Art (Visual)'},
+      {key:'studyAbroad',label:'Study Abroad / International'},
+      {key:'graphicDesign',label:'Graphic Design'}
+    ],
+    oppTypes:[
+      {key:'collegeMerit',label:'College Merit + Talent'},
+      {key:'externalScholarships',label:'External Scholarships'},
+      {key:'competitions',label:'Competitions'},
+      {key:'pipelineCreds',label:'Pipeline Credentials'},
+      {key:'summerPrograms',label:'Summer Programs'},
+      {key:'studyAbroadOpp',label:'Study Abroad'},
+      {key:'workApprentice',label:'Work / Apprenticeships'},
+      {key:'schoolCovers',label:'School Already Covers'}
+    ],
+
+    formatNum(n){return n.toLocaleString()},
+
+    lastSearchDate(){
+      // Calculate the most recent Saturday
+      var now=new Date();
+      var day=now.getDay(); // 0=Sun, 6=Sat
+      var diff=day>=6?0:(day+1); // days since last Saturday
+      var lastSat=new Date(now);
+      lastSat.setDate(now.getDate()-diff);
+      // If today is Saturday and it's before 8am CT, use previous Saturday
+      if(day===6 && now.getHours()<13){ // 8am CT = 1pm UTC roughly
+        lastSat.setDate(lastSat.getDate()-7);
+      }
+      return lastSat.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    },
+
+    nextSearchDate(){
+      var now=new Date();
+      var day=now.getDay();
+      var daysUntilSat=day===6?7:(6-day);
+      // If it's Saturday before 8am CT, next search is today
+      if(day===6 && now.getHours()<13) daysUntilSat=0;
+      var nextSat=new Date(now);
+      nextSat.setDate(now.getDate()+daysUntilSat);
+      if(daysUntilSat===0) return 'Today';
+      if(daysUntilSat===1) return 'Tomorrow';
+      return nextSat.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    },
+
+    trackBadgeClass(track){
+      const m={'MT/Acting':'badge-mt','Writing':'badge-writing','Fine Art':'badge-art',
+        'Psychology':'badge-psych','Pipeline':'badge-pipeline','Academic':'badge-academic',
+        'Essays':'badge-essays','External $':'badge-ext','Planning':'badge-planning',
+        'Applications':'badge-apps'};
+      return m[track]||'badge-planning';
+    },
+
+    isCompleted(id){return this.completed.has(id)},
+    toggleQuest(id){
+      if(this.completed.has(id)){this.completed.delete(id)}
+      else{this.completed.add(id)}
+      this.persist();
+    },
+    completedCount(){return this.completed.size},
+
+    // Dynamic sticker based on preferences
+    dynamicSticker(){
+      var p=this.prefs;
+      var eligible=schools.filter(function(s){
+        // Filter by location toggles
+        if(!p.outOfState && !s.inState && !s.intl) return false;
+        if(!p.international && s.intl) return false;
+        return true;
+      });
+      if(eligible.length===0) return 48000; // fallback to cheapest TX in-state
+      // Weight each school by how well it matches her interest sliders
+      var totalWeight=0, weightedCost=0;
+      eligible.forEach(function(s){
+        var w=0, count=0;
+        s.tags.forEach(function(tag){
+          var key=tagToSlider[tag];
+          if(key && p[key]!==undefined){w+=p[key];count++;}
+        });
+        var avgWeight=count>0?(w/count):10; // low default weight if no tag match
+        totalWeight+=avgWeight;
+        weightedCost+=s.cost4yr*avgWeight;
+      });
+      return totalWeight>0?Math.round(weightedCost/totalWeight):200000;
+    },
+
+    totalSaved(){
+      var s=0;
+      var self=this;
+      this.quests.forEach(function(q){if(self.completed.has(q.id))s+=q.saves});
+      return s;
+    },
+    projectedCost(){return Math.max(0,this.dynamicSticker()-this.totalSaved())},
+    savingsPercent(){var st=this.dynamicSticker();return st>0?(this.totalSaved()/st)*100:0},
+    meterColor(){
+      var p=this.savingsPercent();
+      if(p<20)return '#c0392b';
+      if(p<50)return '#b8860b';
+      return '#2d6a4f';
+    },
+
+    pendingFinds(){return this.finds.filter(f=>f.status==='pending')},
+    get pendingCount(){return this.finds.filter(f=>f.status==='pending').length},
+    acceptFind(id){
+      const f=this.finds.find(x=>x.id===id);
+      if(f)f.status='accepted';
+      this.persist();
+      this.showToast('Added to your opportunities!');
+    },
+    dismissFind(id){
+      const f=this.finds.find(x=>x.id===id);
+      if(f)f.status='dismissed';
+      this.persist();
+    },
+
+    nextTodos(){
+      const phaseOrder=['Now','Fall 2026','Spring 2027','Summer 2027','Senior Year'];
+      let incomplete=this.quests.filter(q=>!this.isCompleted(q.id));
+      incomplete.sort(function(a,b){
+        var ai=phaseOrder.indexOf(a.phase),bi=phaseOrder.indexOf(b.phase);
+        if(ai!==bi) return ai-bi;
+        return b.saves-a.saves;
+      });
+      return incomplete.slice(0,5);
+    },
+
+    filteredQuests(){
+      let list=[...this.quests];
+      const f=this.activeFilter;
+      if(f==='Do Now')list=list.filter(q=>q.phase==='Now');
+      else if(f==='Fall 2026')list=list.filter(q=>q.phase==='Fall 2026');
+      else if(f==='Spring 2027')list=list.filter(q=>q.phase==='Spring 2027');
+      else if(f==='Summer 2027')list=list.filter(q=>q.phase==='Summer 2027');
+      else if(f==='Senior Year')list=list.filter(q=>q.phase==='Senior Year');
+      else if(f==='Free Only')list=list.filter(q=>q.cost==='FREE');
+
+      if(this.activeSort==='impact')list.sort((a,b)=>b.saves-a.saves);
+      else if(this.activeSort==='match')list.sort((a,b)=>b.match-a.match);
+      return list;
+    },
+
+    saving:false,
+
+    saveAll(){
+      var self=this;
+      self.persist();
+      self.saving=true;
+      var p=self.prefs;
+      var fields={
+        "Submitted":"Dashboard save — "+new Date().toLocaleDateString(),
+        "Musical Theatre":p.musicalTheatre,
+        "Acting":p.acting,
+        "Writing / Playwriting":p.writing,
+        "Directing / Producing":p.directing,
+        "Psychology / CogSci":p.psychology,
+        "Fine Art":p.fineArt,
+        "Study Abroad":p.studyAbroad,
+        "Graphic Design":p.graphicDesign,
+        "Out of State":p.outOfState?"Yes":"No",
+        "International":p.international?"Yes":"No",
+        "Max Distance":p.maxDistance
+      };
+      fetch("/api/preferences",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(fields)
+      }).then(function(r){
+        self.saving=false;
+        if(r.ok){self.showToast('Saved! New opportunities will match these settings.');}
+        else{self.showToast('Saved locally. Airtable sync failed — try again.');}
+      }).catch(function(){
+        self.saving=false;
+        self.showToast('Saved locally. Airtable sync failed — try again.');
+      });
+    },
+
+    showToast(msg){
+      this.toastMsg=msg;
+      this.toastVisible=true;
+      setTimeout(()=>{this.toastVisible=false},2200);
+    },
+
+    persist(){
+      save(STORAGE_KEY,{
+        prefs:this.prefs,
+        completed:Array.from(this.completed),
+        finds:this.finds
+      });
+    }
+  }
+}
+</script>
+</body>
+</html>
